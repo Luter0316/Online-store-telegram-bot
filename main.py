@@ -1,21 +1,25 @@
-import os
-import asyncio
-from dotenv import load_dotenv
-from aiogram import Bot, Dispatcher
+import asyncio # Асинхронность
+import logging # Логирование всех действий (помощь в отладке)
 
-# Создание переменных окружения
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
+from aiogram import Bot, Dispatcher # Библиотека бота
+from aiogram.enums.parse_mode import ParseMode # Настройки разметки сообщений (HTML, Markdown)
+from aiogram.fsm.storage.memory import MemoryStorage # Хранилища данных для состояний пользователей
+
+from bot.handlers import router  # Отвечает за распределение входящих запросов
+import config # Настройки бота
+
 
 # Непрерывная функция обработки входящих запросов
-async def main():
-    bot = Bot(token="TOKEN")
-    dp = Dispatcher()
+async def main() -> None:
+    bot = Bot(token=config.BOT_TOKEN, parse_mode=ParseMode.HTML)
+    dp = Dispatcher(storage=MemoryStorage()) # Параметр 'storage=MemoryStorage()' = все несохраненные данные в БД, будут стёрты при перезапуске
+    dp.include_router(router.router)
 
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await bot.delete_webhook(drop_pending_updates=True) # Удаляет все обновления, которые произошли после последнего завершения работы бота
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+
 
 # Запуск бота
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())

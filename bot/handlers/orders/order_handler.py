@@ -1,7 +1,10 @@
 import json
 
 from aiogram import Router, F
-from aiogram.types import Message, web_app_data
+from aiogram.types import Message, web_app_data, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from bot.handlers.payments.payment_create import create
 
 ru_product_dict = {
     'BananaStrips': 'Банановые фрипсы',
@@ -10,10 +13,10 @@ ru_product_dict = {
     'MangoStrips': 'Манго фрипсы'
 }
 
-pay_router = Router()
+order_router = Router()
 
-@pay_router.message(F.web_app_data)
-async def payment(message: Message):
+@order_router.message(F.web_app_data)
+async def order(message: Message):
     json_data = message.web_app_data.data
     parsed_data = json.loads(json_data)
     order_message = ""
@@ -26,10 +29,16 @@ async def payment(message: Message):
 
     order_message += f"Общая стоимость товаров: {parsed_data['totalPrice']}"
 
+    pay_url, payment_id = create(parsed_data['totalPrice'], message.chat.id)
 
-    await message.answer(f"""
-{order_message}
-""")
+    # Клавиатура
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(
+        text="Оплатить", 
+        url= pay_url
+    ))
+    await message.answer(f"{order_message} {payment_id}", reply_markup=builder.as_markup())
+
     
 #     await message.answer('ID админского чата', f"""
 # Новый заказ

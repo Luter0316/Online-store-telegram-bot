@@ -10,9 +10,15 @@ from bot.handlers.payments.payment_create import create
 
 ru_product_dict = {
     'BananaStrips': 'Банановые фрипсы',
+    'AppleStrips': 'Яблочные фрипсы',
     'PearStrips': 'Грушевые фрипсы',
-    'KiwiStrips': ' Киви фрипсы',
-    'MangoStrips': 'Манго фрипсы'
+    'KiwiStrips': 'Киви фрипсы',
+    'OrangeStrips': 'Апельсиновые фрипсы',
+    'PineappleStrips': 'Ананасовые фрипсы',
+    'MangoStrips': 'Манговые фрипсы',
+    'BananaInCoconutStrips': 'Банан в кокосе фрипсы',
+    'PersimmonStrips': 'Хурма фрипсы',
+    'CoconutStrips': 'Кокосовые фрипсы'
 }
 
 order_router = Router()
@@ -30,7 +36,7 @@ async def order(message: Message, bot: Bot):
 
 
     order_message += f"Общая стоимость товаров: {parsed_data['totalPrice']}"
-    pay_url, payment_id = create(parsed_data['totalPrice'], message.chat.id, order_message)
+    pay_url, payment_id = create(parsed_data['totalPrice'], message.chat.id, order_message[:100])#лимит на длину описания
 
     # Клавиатура
     builder = InlineKeyboardBuilder()
@@ -41,12 +47,12 @@ async def order(message: Message, bot: Bot):
 
     order_number = create_order_number(payment_id, parsed_data['totalPrice'])
     #Отправка сообщения в админский чат
-    await bot.send_message(928752105, f"""
+    await bot.send_message(928752105, f"""Номер платежа: {payment_id}
 # Новый заказ! {order_number}
 # {order_message}
 #     """)
     
-    await message.answer(f"{order_message}", reply_markup=builder.as_markup())
+    await message.answer(f"Номер вашего заказа: {order_number} \n{order_message}", reply_markup=builder.as_markup())
 
 def create_order_number(id: str, price):
     order_id = randint(0, 100)

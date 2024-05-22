@@ -8,4 +8,4 @@ user_commands_router = Router()
 
 @user_commands_router.message(Command("start"))
 async def cmd_start(message: Message):
-    await message.answer("Привет", reply_markup=menu_keyboard)
+    await message.answer("""Добро пожаловать в магазин "Сезон вкусов"!""", reply_markup=menu_keyboard)

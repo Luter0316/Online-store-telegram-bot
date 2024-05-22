@@ -6,7 +6,7 @@ import config
 yookassa.Configuration.account_id = config.ACCOUNT_ID
 yookassa.Configuration.secret_key = config.SECRET_KEY
 
-def create(amount, chat_id):
+def create(amount, chat_id, order_desription):
     id_key = str(uuid.uuid4())
     payment = Payment.create({
         "amount": {
@@ -24,7 +24,7 @@ def create(amount, chat_id):
         'metadata': {
             'chat_id': chat_id
         },
-        'description': 'РЕАЛИЗОВАТЬ ИМПОРТ ЗАКАЗА'
+        'description': order_desription
     }, id_key)
 
     return payment.confirmation.confirmation_url, payment.id

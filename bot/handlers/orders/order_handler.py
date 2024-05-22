@@ -3,6 +3,8 @@ import json
 from aiogram import Router, F
 from aiogram.types import Message, web_app_data, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram import Bot
+from random import randint
 
 from bot.handlers.payments.payment_create import create
 
@@ -16,7 +18,7 @@ ru_product_dict = {
 order_router = Router()
 
 @order_router.message(F.web_app_data)
-async def order(message: Message):
+async def order(message: Message, bot: Bot):
     json_data = message.web_app_data.data
     parsed_data = json.loads(json_data)
     order_message = ""
@@ -28,8 +30,7 @@ async def order(message: Message):
 
 
     order_message += f"Общая стоимость товаров: {parsed_data['totalPrice']}"
-
-    pay_url, payment_id = create(parsed_data['totalPrice'], message.chat.id)
+    pay_url, payment_id = create(parsed_data['totalPrice'], message.chat.id, order_message)
 
     # Клавиатура
     builder = InlineKeyboardBuilder()
@@ -37,11 +38,19 @@ async def order(message: Message):
         text="Оплатить", 
         url= pay_url
     ))
-    await message.answer(f"{order_message} {payment_id}", reply_markup=builder.as_markup())
 
-    
-#     await message.answer('ID админского чата', f"""
-# Новый заказ
-
-# {message}
+    order_number = create_order_number(payment_id, parsed_data['totalPrice'])
+    #Отправка сообщения в админский чат
+    await bot.send_message(928752105, f"""
+# Новый заказ! {order_number}
+# {order_message}
 #     """)
+    
+    await message.answer(f"{order_message}", reply_markup=builder.as_markup())
+
+def create_order_number(id: str, price):
+    order_id = randint(0, 100)
+    for i in range(len(id)):
+        if id[i].isdigit():
+            order_id += int(id[i]) 
+    return order_id
